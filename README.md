@@ -86,11 +86,10 @@ duck_df = duckdb.sql('''select * from pl_df''')
 printh(pd_df, pl_df, duck_df)
 
 # Polars - Validity Buffers
-# buffers = pl_df['a']._get_buffers()
 
 # Arrow - Validity Buffers
 
-# pandas - ?
+# pandas - ??
 ```
 
 ## Grouped Sums
