@@ -53,11 +53,20 @@ pl_df = pl.from_pandas(pd_df)
 duck_df = duckdb.sql("select * from pl_df")
 
 
-# printh(
-#     pd_df[['value']].sum(),
-#     pl_df.select(pl.col('value').sum()),
-#     duckdb.sql("select sum(value) from duck_df"),
-# )
+printh(
+    pd_df[['value']].sum(),
+    pl_df.select(pl.col('value').sum()),
+    duckdb.sql("select sum(value) from duck_df"),
+)
+# value    15         shape: (1, 1)        ┌──────────────┐
+# dtype: int64        ┌───────┐            │ sum("value") │
+#                     │ value │            │    int128    │
+#                     │ ---   │            ├──────────────┤
+#                     │ i64   │            │           15 │
+#                     ╞═══════╡            └──────────────┘
+#                     │ 15    │
+#                     └───────┘
+
 
 import narwhals as nw
 
@@ -73,13 +82,14 @@ printh(
     agnostic_sum(pl_df, 'value'),
     agnostic_sum(duck_df, 'value'),
 )
-```
-
-### Avoiding SQL
-
-```python
-
-...
+#    value        shape: (1, 1)        ┌────────┐
+# 0     15        ┌───────┐            │ value  │
+#                 │ value │            │ int128 │
+#                 │ ---   │            ├────────┤
+#                 │ i64   │            │     15 │
+#                 ╞═══════╡            └────────┘
+#                 │ 15    │
+#                 └───────┘
 ```
 
 ## Why are DataFrames Challenging in Python?
