@@ -298,9 +298,62 @@ you’re likely better off to use one of the "native" DataFrame tools (pandas, P
 import pandas as pd
 import polars as pl
 import narwhals as nw
+from utils import printh
 
-df = pd.DataFrame({'a': [None,5,7,10], 'b':[ 1, 3, 4, 2], 'c': [5, 4, 3, 2]})
-print(df.corr(method='pearson'))
+df = pd.DataFrame({'a': [4,5,7,10], 'b':[ 1, 3, 4, 2]})
+pl_df = pl.from_pandas(df)
+
+
+printh(
+    df.corr(method='pearson'),
+    df.corr(method='spearman'),
+
+    # Narwhals does not expose min_periods=...
+    df.corr(method='kendall', min_periods=4),
+)
+#          a        b             a    b                  a         b
+# a  1.00000  0.19518        a  1.0  0.4        a  1.000000  0.333333
+# b  0.19518  1.00000        b  0.4  1.0        b  0.333333  1.000000
+
+
+printh(
+    nw.from_native(df).select(nw.corr('a', 'b', method='pearson')),
+    nw.from_native(df).select(nw.corr('a', 'b', method='spearman')),
+)
+# ┌──────────────────┐        ┌──────────────────┐
+# |Narwhals DataFrame|        |Narwhals DataFrame|
+# |------------------|        |------------------|
+# |             a    |        |           a      |
+# |    b  0.19518    |        |      b  0.4      |
+# └──────────────────┘        └──────────────────┘
+
+print(
+    nw.from_native(pl_df).select(nw.corr('a', 'b', method='pearson')).to_native()
+)
+# shape: (1, 1)
+# ┌─────────┐
+# │ a       │
+# │ ---     │
+# │ f64     │
+# ╞═════════╡
+# │ 0.19518 │
+# └─────────┘
+
+print( # Narwhals opted to not expose min_periods=... due to no other backends having a comparable argument
+    nw.from_native(df).select(nw.corr('a', 'b', min_periods=4))
+)
+# Traceback (most recent call last):
+#   File "/home/cameron/.vim-excerpt", line 32, in <module>
+#     print(nw.from_native(df).select(nw.corr('a', 'b', min_periods=4)))
+#                                     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+# TypeError: corr() got an unexpected keyword argument 'min_periods'
+
+print( # Polars does not support method="kendall" natively and errors out.
+    nw.from_native(pl_df).select(nw.corr('a', 'b', method='kendall')).to_native()
+)
+#   File "/mnt/repos/posit-datascience-lab/2026-06-30/.pixi/envs/default/lib/python3.14/site-packages/polars/functions/lazy.py", line 980, in corr
+#     raise ValueError(msg)
+# ValueError: method must be one of {'pearson', 'spearman'}, got 'kendall'
 ```
 
 ## Minimal Overhead
