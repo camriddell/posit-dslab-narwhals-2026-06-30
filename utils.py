@@ -1,7 +1,6 @@
 from itertools import zip_longest
 from sys import stdout
 
-
 def printh(*tables, sep=" " * 8, file=stdout):
     """
     Concatenate repr()-style tabular outputs horizontally.
